@@ -4,7 +4,13 @@ import json
 import datetime
 import sys
 
+from datetime import datetime, timedelta
+
+from markdownify import markdownify as md
+
+
 from O365 import Account
+from O365.calendar import Calendar, Event
 from O365.utils.token import BaseTokenBackend, Token
 
 ENCRYPTION_PIPE = [
@@ -19,9 +25,6 @@ FIELDS_TO_SAVE = [
     "refresh_token",
     "access_token",
 ]
-
-
-
 path = pathlib.Path("/home/lilith/Developer/py-outlook/TOKEN_CALENDAR")
 
 
@@ -55,50 +58,71 @@ def writetokenfile():
     path.write_bytes(sub2.stdout)
 
 
-decrypted_token = readtokenfile()
-
-
-def access_token_valid():
-    token_exp = decrypted_token["access_token_expiration"]
+def access_token_valid(token):
+    token_exp = token["access_token_expiration"]
     return token_exp and datetime.now() < datetime.fromisoformat(token_exp)
-
 
 class MyToken(BaseTokenBackend):
     def __init__(self):
         super().__init__()
         self.token_is_valid = False
+        self.decrypted_token = None
 
     def load_token(self):
-        return decrypted_token
+        self.decrypted_token = readtokenfile()
+        return self.decrypted_token
 
     def save_token(self):
         for field in FIELDS_TO_SAVE:
-            decrypted_token[field] = self.token[field]
+            self.decrypted_token[field] = self.token[field]
         writetokenfile()
 
     def should_refresh_token(self):
-        print("REFRESH?")
-        self.token_is_valid = access_token_valid()
+        if not self.decrypted_token:
+            return False
+        self.token_is_valid = access_token_valid(self.decrypted_token)
         return self.token_is_valid
 
+def fetch_events(start, end):
 
-token = MyToken()
-acc = Account(
-    (decrypted_token["client_id"], decrypted_token["client_secret"]),
-    token_backend=token,
-)
+    token = MyToken()
+    token.load_token()
+    acc = Account(
+        (token.decrypted_token["client_id"], token.decrypted_token["client_secret"]),
+        token_backend=token,
+    )
 
-# if acc.authenticate(scopes=["calendar"]):
-#     print("Works :D")
-# else:
-#     print("No works :C")
+    schedule = acc.schedule()
+    calendar = schedule.get_default_calendar()
 
-schedule = acc.schedule()
-calendar = schedule.get_default_calendar()
+    q = calendar.new_query("start").greater_equal(start)
+    q.chain("and").on_attribute("end").less_equal(end)
 
-q = calendar.new_query("start").greater_equal(datetime.datetime(2024, 10, 15))
-q.chain("and").on_attribute("end").less_equal(datetime.datetime(2024, 11, 22))
+    events = calendar.get_events(query=q, include_recurring=True)
+    return events
 
-events = calendar.get_events(query=q, include_recurring=True)
-for event in events:
-    print(event)
+def cleanup_string(s: str) -> str:
+    lines = [l.strip() for l in s.strip().split("\n")]
+    return "\n".join([l for l in lines if l != ""])
+
+def json_serialise(event: Event) -> str:
+    attendees = [{"name": i.name, "address": i.address} for i in event.attendees]
+    locations = event.locations
+
+    e = {
+        "name": event.attachment_name,
+        "body": cleanup_string(md(event.body)),
+        "attendees": attendees,
+        "locations": locations,
+        "start_time": event.start.isoformat(),
+        "end_time": event.end.isoformat(),
+    }
+    return json.dumps(e, indent=4)
+
+
+today = datetime.today()
+week_before = today - timedelta(days=7 * 2)
+week_after = today + timedelta(days=7 * 2)
+
+events = fetch_events(week_before, week_after)
+
