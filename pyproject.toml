@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "thallo"
+version = "1.0.3"
+dependencies = [
+    "beautifulsoup4==4.12.3",
+    "certifi==2024.8.30",
+    "charset-normalizer==3.4.0",
+    "idna==3.10",
+    "markdownify==0.13.1",
+    "O365==2.0.38",
+    "oauthlib==3.2.2",
+    "python-dateutil==2.9.0.post0",
+    "requests==2.32.3",
+    "requests-oauthlib==2.0.0",
+    "six==1.16.0",
+    "soupsieve==2.6",
+    "tzdata==2024.2",
+    "tzlocal==5.2",
+    "urllib3==2.2.3",
+]
+requires-python = ">= 3.8"
+authors = [
+  {name = "Fergus Baker", email="fergus@cosroe.com" },
+]
+maintainers = [
+  {name = "Fergus Baker", email="fergus@cosroe.com" },
+]
+readme = "README.md"
+license = { file = "LICENSE" }
+
+[project.scripts]
+thallo = "thallo.main:main"
+
