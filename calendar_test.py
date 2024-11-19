@@ -62,6 +62,7 @@ def access_token_valid(token):
     token_exp = token["access_token_expiration"]
     return token_exp and datetime.now() < datetime.fromisoformat(token_exp)
 
+
 class MyToken(BaseTokenBackend):
     def __init__(self):
         super().__init__()
@@ -83,6 +84,7 @@ class MyToken(BaseTokenBackend):
         self.token_is_valid = access_token_valid(self.decrypted_token)
         return self.token_is_valid
 
+
 def fetch_events(start, end):
 
     token = MyToken()
@@ -101,9 +103,11 @@ def fetch_events(start, end):
     events = calendar.get_events(query=q, include_recurring=True)
     return events
 
+
 def cleanup_string(s: str) -> str:
     lines = [l.strip() for l in s.strip().split("\n")]
     return "\n".join([l for l in lines if l != ""])
+
 
 def extract_fields(event: Event) -> dict:
     attendees = [{"name": i.name, "address": i.address} for i in event.attendees]
@@ -128,5 +132,3 @@ events = fetch_events(week_before, week_after)
 
 evs = [extract_fields(e) for e in events]
 print(json.dumps(evs, indent=4))
-
-

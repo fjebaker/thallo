@@ -117,7 +117,7 @@ class Calendar:
         self.schedule = self.account.schedule()
         self.calendar = self.schedule.get_default_calendar()
 
-    def fetch(self, start: datetime, end: datetime) -> list[Event]:
+    def fetch(self, start: datetime, end: datetime, sort=True) -> list[Event]:
         """
         Fetch calendar events between two given dates.
         """
@@ -125,14 +125,18 @@ class Calendar:
         query.chain("and").on_attribute("end").less_equal(end)
 
         events = self.calendar.get_events(query=query, include_recurring=True)
-        return [e for e in events]
+        evs = [e for e in events]
 
-    def fetch_dict(self, start: datetime, end: datetime) -> list[dict]:
+        if sort:
+            return [i for i in sorted(evs, key=lambda i: i.start)]
+        return evs
+
+    def fetch_dict(self, start: datetime, end: datetime, **kwargs) -> list[dict]:
         """
         Fetch calendar events between two given dates, extracting and cleaning
         the fields into a pre-defined schema.
         """
-        return [self.extract_fields(i) for i in self.fetch(start, end)]
+        return [self.extract_fields(i) for i in self.fetch(start, end, **kwargs)]
 
     @staticmethod
     def extract_fields(event: Event) -> dict:
