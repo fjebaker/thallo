@@ -4,17 +4,30 @@ from datetime import datetime, timedelta
 
 import click
 import dateparser
+import pytimeparse2
+
 
 from thallo.calendar import Calendar
 
-calendar = Calendar()
+
+def get_calendar(calendar=[]) -> Calendar:
+    if len(calendar) > 0:
+        return calendar[0]
+    else:
+        calendar.append(Calendar())
+        return calendar[0]
 
 
 def _TODAY():
     return datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
 
+
 def _parse_date(s: str) -> datetime:
     return dateparser.parse(s)
+
+
+def _parse_delta(s: str) -> timedelta:
+    return timedelta(seconds=pytimeparse2.parse(s))
 
 
 @click.group()
@@ -44,11 +57,11 @@ def entry():
     help="Output the fetched events as a JSON string.",
 )
 def fetch(**kwargs):
-    """Fetch events from the calendar and print in various ways.
-    """
+    """Fetch events from the calendar and print in various ways."""
     start = kwargs["from"]
     end = kwargs["to"]
 
+    calendar = get_calendar()
     events = calendar.fetch_dict(start, end)
 
     if kwargs["json"]:
@@ -68,6 +81,8 @@ def fetch(**kwargs):
 def day(date, **kwargs):
     """Show the events on a specific day. Defaults to today."""
     start = date if date is click.DateTime else _parse_date(date)
+
+    calendar = get_calendar()
     events = calendar.fetch_dict(start, start + timedelta(days=1))
 
     if kwargs["json"]:
@@ -76,9 +91,39 @@ def day(date, **kwargs):
     print(events)
 
 
+@click.command()
+@click.argument("dates", nargs=-1)
+@click.option(
+    "-t",
+    "--title",
+    type=str,
+    required=True,
+    help="The title of the event",
+)
+@click.option(
+    "--duration",
+    default="1h",
+    type=str,
+    show_default=True,
+    help="Duration of the calendar event.",
+)
+def add(dates, **kwargs):
+    """Add a new event to a calendar."""
+    date = " ".join(dates)
+
+    start = date if date is click.DateTime else _parse_date(date)
+    duration = _parse_delta(kwargs["duration"])
+    end = start + duration
+
+    calendar = get_calendar()
+    ev = calendar.add_event(start, end, title=kwargs["title"])
+    print("Event added:", ev)
+
+
 def main():
     entry()
 
 
 entry.add_command(fetch)
 entry.add_command(day)
+entry.add_command(add)

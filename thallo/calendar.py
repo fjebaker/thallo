@@ -2,7 +2,8 @@ import pathlib
 import json
 import subprocess
 
-from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
+from datetime import datetime, timedelta, timezone
 
 from O365 import Account
 from O365.calendar import Calendar, Event
@@ -157,3 +158,17 @@ class Calendar:
             "end_time": event.end.isoformat(),
         }
         return e
+
+    def add_event(self, start: datetime, end: datetime, title="New Meeting") -> Event:
+        start = start.astimezone(timezone.utc).replace(tzinfo=ZoneInfo("UTC"))
+        end = end.astimezone(timezone.utc).replace(tzinfo=ZoneInfo("UTC"))
+
+        ev = self.calendar.new_event()
+        ev.subject = title
+        ev.start = start
+        ev.end = end
+
+        # save the event
+        ev.save()
+
+        return ev
