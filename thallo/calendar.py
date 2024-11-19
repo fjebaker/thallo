@@ -24,13 +24,15 @@ FIELDS_TO_SAVE = [
 ]
 TOKEN_PATH = pathlib.Path("/home/lilith/developer/py-outlook/TOKEN_CALENDAR_RW")
 
+
 def cleanup_string(s: str) -> str:
     lines = [l.strip() for l in s.strip().split("\n")]
     return "\n".join([l for l in lines if l != ""])
 
+
 class Token(BaseTokenBackend):
 
-    def __init__(self, token_path = TOKEN_PATH):
+    def __init__(self, token_path=TOKEN_PATH):
         super().__init__()
         self.token_is_valid = False
         self.decrypted_token = None
@@ -44,7 +46,9 @@ class Token(BaseTokenBackend):
             raise Exception("Token not found")
 
         if 0o777 & self.token_path.stat().st_mode != 0o600:
-            raise Exception("Token file has unsafe mode. Suggest deleting and starting over.")
+            raise Exception(
+                "Token file has unsafe mode. Suggest deleting and starting over."
+            )
 
         sub = subprocess.run(
             DECRYPTION_PIPE,
@@ -62,7 +66,9 @@ class Token(BaseTokenBackend):
             self.token_path.touch(mode=0o600)
 
         if 0o777 & self.token_path.stat().st_mode != 0o600:
-            raise Exception("Token file has unsafe mode. Suggest deleting and starting over.")
+            raise Exception(
+                "Token file has unsafe mode. Suggest deleting and starting over."
+            )
 
         sub2 = subprocess.run(
             ENCRYPTION_PIPE,
@@ -95,14 +101,17 @@ class Token(BaseTokenBackend):
         return self.token_is_valid
 
 
-class Calendar():
+class Calendar:
 
     def __init__(self):
         self.token = Token()
         self.token.load_token()
 
         self.account = Account(
-            (self.token.decrypted_token["client_id"], self.token.decrypted_token["client_secret"]),
+            (
+                self.token.decrypted_token["client_id"],
+                self.token.decrypted_token["client_secret"],
+            ),
             token_backend=self.token,
         )
         self.schedule = self.account.schedule()

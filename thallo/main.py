@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 from thallo.calendar import Calendar
 
+
 def main():
 
     today = datetime.today()
