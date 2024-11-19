@@ -21,6 +21,7 @@ dependencies = [
     "tzdata==2024.2",
     "tzlocal==5.2",
     "urllib3==2.2.3",
+    "click==8.1.7",
 ]
 requires-python = ">= 3.8"
 authors = [
