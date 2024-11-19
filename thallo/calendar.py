@@ -159,7 +159,9 @@ class Calendar:
         }
         return e
 
-    def add_event(self, start: datetime, end: datetime, title="New Meeting") -> Event:
+    def add_event(
+        self, start: datetime, end: datetime, title="New Meeting", private=False
+    ) -> Event:
         start = start.astimezone(timezone.utc).replace(tzinfo=ZoneInfo("UTC"))
         end = end.astimezone(timezone.utc).replace(tzinfo=ZoneInfo("UTC"))
 
@@ -167,5 +169,8 @@ class Calendar:
         ev.subject = title
         ev.start = start
         ev.end = end
+
+        if private:
+            ev.sensitivity = "private"
 
         return ev

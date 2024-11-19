@@ -107,6 +107,11 @@ def day(date, **kwargs):
     show_default=True,
     help="Duration of the calendar event.",
 )
+@click.option(
+    "--private",
+    is_flag=True,
+    help="Set the event to a private event.",
+)
 def add(dates, **kwargs):
     """Add a new event to a calendar."""
     date = " ".join(dates)
@@ -116,7 +121,9 @@ def add(dates, **kwargs):
     end = start + duration
 
     calendar = get_calendar()
-    ev = calendar.add_event(start, end, title=kwargs["title"])
+    ev = calendar.add_event(
+        start, end, title=kwargs["title"], private=kwargs["private"]
+    )
     print("Event:", ev)
     inp = input("Accept? [Y/n] ").strip().lower()
     if inp == "" or inp == "y":
