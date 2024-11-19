@@ -23,6 +23,7 @@ FIELDS_TO_SAVE = [
     "access_token",
 ]
 TOKEN_PATH = pathlib.Path("/home/lilith/developer/py-outlook/TOKEN_CALENDAR_RW")
+REFRESH_TOKEN_CMD = ["/home/lilith/developer/py-outlook/mutt_oauth2.py"]
 
 
 def cleanup_string(s: str) -> str:
@@ -50,6 +51,10 @@ class Token(BaseTokenBackend):
                 "Token file has unsafe mode. Suggest deleting and starting over."
             )
 
+        # refresh for good luck
+        _ = subprocess.run(
+            REFRESH_TOKEN_CMD + [self.token_path], check=True, capture_output=True
+        )
         sub = subprocess.run(
             DECRYPTION_PIPE,
             check=True,
