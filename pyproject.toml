@@ -9,6 +9,8 @@ dependencies = [
     "beautifulsoup4==4.12.3",
     "certifi==2024.8.30",
     "charset-normalizer==3.4.0",
+    "click==8.1.7",
+    "dateparser==1.2.0",
     "idna==3.10",
     "markdownify==0.13.1",
     "O365==2.0.38",
@@ -21,7 +23,6 @@ dependencies = [
     "tzdata==2024.2",
     "tzlocal==5.2",
     "urllib3==2.2.3",
-    "click==8.1.7",
 ]
 requires-python = ">= 3.8"
 authors = [
