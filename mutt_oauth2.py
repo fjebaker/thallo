@@ -73,7 +73,9 @@ registrations = {
         'client_id': '08162f7c-0fd2-4200-a84a-f25a4db0b584',
         'sasl_method': 'XOAUTH2',
         'scope': ('offline_access '
-                  'https://graph.microsoft.com/Calendars.Read'),
+                  'https://graph.microsoft.com/Calendars.Read '
+                  'https://graph.microsoft.com/Calendars.ReadWrite'
+                  ),
     },
 }
 
