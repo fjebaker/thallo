@@ -80,7 +80,7 @@ def fetch(**kwargs):
 )
 def day(date, **kwargs):
     """Show the events on a specific day. Defaults to today."""
-    start = date if date is click.DateTime else _parse_date(date)
+    start = (date if date is click.DateTime else _parse_date(date)).replace(hour=0, minute=0, second=0, microsecond=0)
 
     calendar = get_calendar()
     events = calendar.fetch_dict(start, start + timedelta(days=1))
