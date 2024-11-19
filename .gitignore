@@ -1,1 +1,3 @@
 TOKEN_*
+__pycache__
+*.pyc
