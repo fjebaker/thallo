@@ -168,7 +168,4 @@ class Calendar:
         ev.start = start
         ev.end = end
 
-        # save the event
-        ev.save()
-
         return ev

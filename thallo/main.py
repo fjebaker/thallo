@@ -23,7 +23,7 @@ def _TODAY():
 
 
 def _parse_date(s: str) -> datetime:
-    return dateparser.parse(s)
+    return dateparser.parse(s, settings={"PREFER_DATES_FROM": "future"})
 
 
 def _parse_delta(s: str) -> timedelta:
@@ -117,7 +117,13 @@ def add(dates, **kwargs):
 
     calendar = get_calendar()
     ev = calendar.add_event(start, end, title=kwargs["title"])
-    print("Event added:", ev)
+    print("Event:", ev)
+    inp = input("Accept? [Y/n] ").strip().lower()
+    if inp == "" or inp == "y":
+        ev.save()
+        print("Event saved to calendar.")
+    else:
+        print("Event discarded.")
 
 
 def main():
