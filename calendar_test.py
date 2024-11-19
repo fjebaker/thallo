@@ -25,7 +25,7 @@ FIELDS_TO_SAVE = [
     "refresh_token",
     "access_token",
 ]
-path = pathlib.Path("/home/lilith/Developer/py-outlook/TOKEN_CALENDAR")
+path = pathlib.Path("/home/lilith/developer/py-outlook/TOKEN_CALENDAR_RW")
 
 
 def readtokenfile():
@@ -105,7 +105,7 @@ def cleanup_string(s: str) -> str:
     lines = [l.strip() for l in s.strip().split("\n")]
     return "\n".join([l for l in lines if l != ""])
 
-def json_serialise(event: Event) -> str:
+def extract_fields(event: Event) -> dict:
     attendees = [{"name": i.name, "address": i.address} for i in event.attendees]
     locations = event.locations
 
@@ -117,7 +117,7 @@ def json_serialise(event: Event) -> str:
         "start_time": event.start.isoformat(),
         "end_time": event.end.isoformat(),
     }
-    return json.dumps(e, indent=4)
+    return e
 
 
 today = datetime.today()
@@ -125,4 +125,8 @@ week_before = today - timedelta(days=7 * 2)
 week_after = today + timedelta(days=7 * 2)
 
 events = fetch_events(week_before, week_after)
+
+evs = [extract_fields(e) for e in events]
+print(json.dumps(evs, indent=4))
+
 
