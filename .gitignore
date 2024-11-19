@@ -1,3 +1,5 @@
 TOKEN_*
 __pycache__
 *.pyc
+build
+*.egg-info
