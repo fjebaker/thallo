@@ -1,9 +1,12 @@
-import pathlib
+import os
 import json
 import subprocess
 
 from zoneinfo import ZoneInfo
 from datetime import datetime, timedelta, timezone
+
+import thallo.auth
+import thallo.utils as utils
 
 from O365 import Account
 from O365.calendar import Calendar, Event
@@ -11,20 +14,11 @@ from O365.utils.token import BaseTokenBackend, Token
 
 from markdownify import markdownify as md
 
-ENCRYPTION_PIPE = [
-    "gpg",
-    "--encrypt",
-    "--recipient",
-    "REDACTED",
-]
-DECRYPTION_PIPE = ["gpg", "--decrypt"]
 FIELDS_TO_SAVE = [
     "access_token_expiration",
     "refresh_token",
     "access_token",
 ]
-TOKEN_PATH = pathlib.Path("/home/lilith/developer/py-outlook/TOKEN_CALENDAR_RW")
-REFRESH_TOKEN_CMD = ["/home/lilith/developer/py-outlook/mutt_oauth2.py"]
 
 
 def cleanup_string(s: str) -> str:
@@ -34,7 +28,7 @@ def cleanup_string(s: str) -> str:
 
 class Token(BaseTokenBackend):
 
-    def __init__(self, token_path=TOKEN_PATH):
+    def __init__(self, token_path=utils.get_token_path()):
         super().__init__()
         self.token_is_valid = False
         self.decrypted_token = None
@@ -44,6 +38,9 @@ class Token(BaseTokenBackend):
         """
         Read an access token from file.
         """
+        # first we check the token is okay / refresh for good luck
+        thallo.auth.run(self.token_path)
+
         if not self.token_path.exists():
             raise Exception("Token not found")
 
@@ -52,17 +49,7 @@ class Token(BaseTokenBackend):
                 "Token file has unsafe mode. Suggest deleting and starting over."
             )
 
-        # refresh for good luck
-        _ = subprocess.run(
-            REFRESH_TOKEN_CMD + [self.token_path], check=True, capture_output=True
-        )
-        sub = subprocess.run(
-            DECRYPTION_PIPE,
-            check=True,
-            input=self.token_path.read_bytes(),
-            capture_output=True,
-        )
-        return json.loads(sub.stdout)
+        return thallo.auth.load_and_decrypt(self.token_path)
 
     def _write_token_file(self) -> None:
         """
@@ -76,13 +63,7 @@ class Token(BaseTokenBackend):
                 "Token file has unsafe mode. Suggest deleting and starting over."
             )
 
-        sub2 = subprocess.run(
-            ENCRYPTION_PIPE,
-            check=True,
-            input=json.dumps(self.decrypted_token).encode(),
-            capture_output=True,
-        )
-        self.token_path.write_bytes(sub2.stdout)
+        thallo.auth.encrypt_and_save(self.token_path, self.decrypted_token)
 
     def _access_token_valid(self) -> bool:
         """

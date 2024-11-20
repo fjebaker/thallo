@@ -6,6 +6,8 @@ import click
 import dateparser
 import pytimeparse2
 
+import thallo.auth
+import thallo.utils as utils
 
 from thallo.calendar import Calendar
 
@@ -80,7 +82,9 @@ def fetch(**kwargs):
 )
 def day(date, **kwargs):
     """Show the events on a specific day. Defaults to today."""
-    start = (date if date is click.DateTime else _parse_date(date)).replace(hour=0, minute=0, second=0, microsecond=0)
+    start = (date if date is click.DateTime else _parse_date(date)).replace(
+        hour=0, minute=0, second=0, microsecond=0
+    )
 
     calendar = get_calendar()
     events = calendar.fetch_dict(start, start + timedelta(days=1))
@@ -133,6 +137,17 @@ def add(dates, **kwargs):
         print("Event discarded.")
 
 
+@click.command()
+@click.option(
+    "--email",
+    help="The email address to use to login to Outlook.",
+)
+def authorize(email=None):
+    """Fetch an OAuth2 token (requires a browser)."""
+    thallo.auth.run(utils.get_token_path(), authorize=True, email=email)
+    print("Successfully authenticated!")
+
+
 def main():
     entry()
 
@@ -140,3 +155,4 @@ def main():
 entry.add_command(fetch)
 entry.add_command(day)
 entry.add_command(add)
+entry.add_command(authorize)
