@@ -9,6 +9,7 @@ import pytimeparse2
 import thallo.auth
 import thallo.utils as utils
 
+from thallo.format import pretty_print_events
 from thallo.calendar import Calendar
 
 
@@ -70,7 +71,7 @@ def fetch(**kwargs):
         print(json.dumps(events))
         return
 
-    print(events)
+    pretty_print_events(events)
 
 
 @click.command()
@@ -92,7 +93,7 @@ def day(date, **kwargs):
     if kwargs["json"]:
         return print(json.dumps(events))
 
-    print(events)
+    pretty_print_events(events)
 
 
 @click.command()
