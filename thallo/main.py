@@ -75,14 +75,16 @@ def fetch(**kwargs):
 
 
 @click.command()
-@click.argument("date", default=_TODAY())
+@click.argument("dates", nargs=-1)
 @click.option(
     "--json",
     is_flag=True,
     help="Output the events as a JSON string.",
 )
-def day(date, **kwargs):
+def day(dates, **kwargs):
     """Show the events on a specific day. Defaults to today."""
+    date = " ".join(dates) if len(dates) > 0 else str(_TODAY())
+
     start = (date if date is click.DateTime else _parse_date(date)).replace(
         hour=0, minute=0, second=0, microsecond=0
     )
