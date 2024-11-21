@@ -1,11 +1,15 @@
-# Calendar Sync
+# Thallo
 
-    py-outlook (main) $ ./mutt_oauth2.py TOKEN_CALENDAR --verbose --authorize \
-        --client-id='08162f7c-0fd2-4200-a84a-f25a4db0b584' \
-        --client-secret='TxRBilcHdC6WGBee]fs?QR:SJ8nI[g82' \
-        --provider microsoft
+    Usage: thallo [OPTIONS] COMMAND [ARGS]...
 
-Use the `localhostauth` mode.
+      Thallo is a tool for interacting with Outlook calendars.
 
-The client ID and client secret are taken from the Thunderbird mail client.
+    Options:
+      --help  Show this message and exit.
+
+    Commands:
+      add        Add a new event to a calendar.
+      authorize  Fetch an OAuth2 token (requires a browser).
+      day        Show the events on a specific day.
+      fetch      Fetch events from the calendar and print in various ways.
 
