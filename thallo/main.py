@@ -3,8 +3,6 @@ import json
 from datetime import datetime, timedelta
 
 import click
-import dateparser
-import pytimeparse2
 
 import thallo.auth
 import thallo.utils as utils
@@ -21,27 +19,10 @@ def get_calendar(calendar=[]) -> Calendar:
         return calendar[0]
 
 
-def _TODAY():
-    return datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
-
-
-def _parse_date(s: str) -> datetime:
-    return dateparser.parse(s, settings={"PREFER_DATES_FROM": "future"})
-
-
-def _parse_delta(s: str) -> timedelta:
-    return timedelta(seconds=pytimeparse2.parse(s))
-
-
-def get_calendar_from_dates(dates: list[str], days=1) -> None | list[Event]:
-    date = " ".join(dates) if len(dates) > 0 else str(_TODAY())
-
-    start = (date if date is click.DateTime else _parse_date(date)).replace(
-        hour=0, minute=0, second=0, microsecond=0
-    )
-
+def get_calendar_dates(dates: list[str], delta_days=1) -> Calendar:
+    date = utils.parse_date_like(dates)
     calendar = get_calendar()
-    return calendar.fetch_dict(start, start + timedelta(days=days))
+    return calendar.fetch_dict(date, date + timedelta(days=delta_days))
 
 
 @click.group()
@@ -53,14 +34,14 @@ def entry():
 @click.command()
 @click.option(
     "--from",
-    default=_TODAY(),
+    default=utils.today(),
     type=click.DateTime(),
     show_default=True,
     help="The date to select from",
 )
 @click.option(
     "--to",
-    default=_TODAY() + timedelta(days=7 * 2),
+    default=utils.today() + timedelta(days=7 * 2),
     type=click.DateTime(),
     show_default=True,
     help="The date to select to, not inclusive (defaults to a fortnight ahead).",
@@ -106,11 +87,9 @@ def fetch(**kwargs):
 )
 def info(dates, **kwargs):
     """Get detailed information about a day or specific event."""
-    events = get_calendar_from_dates(dates)
+    events = get_calendar_dates(dates)
 
     if not kwargs["index"] and not kwargs["name"]:
-        events = get_calendar_from_dates(dates)
-
         if len(events) == 0:
             print("\n - No events - \n")
             return

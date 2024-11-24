@@ -1,6 +1,19 @@
 import configparser
 import pathlib
 import functools
+import subprocess
+import os
+import tempfile
+
+from datetime import datetime, timedelta
+
+import click
+import dateparser
+import pytimeparse2
+
+
+def today():
+    return datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
 
 
 def get_root_dir() -> pathlib.Path:
@@ -10,6 +23,31 @@ def get_root_dir() -> pathlib.Path:
 def get_token_path() -> pathlib.Path:
     root_dir = get_root_dir()
     return root_dir / "TOKEN"
+
+
+def tmp_editor(contents="") -> str:
+    """Pop an $EDITOR with some optional contents."""
+    with tempfile.NamedTemporaryFile(mode="w+") as tmp:
+        tmp.write(contents)
+        subprocess.run([os.environ.get("EDITOR", "vim"), tmp.name])
+        tmp.seek(0)
+        return tmp.read()
+
+
+def parse_date(s: str) -> datetime:
+    return dateparser.parse(s, settings={"PREFER_DATES_FROM": "future"})
+
+
+def parse_delta(s: str) -> timedelta:
+    return timedelta(seconds=pytimeparse2.parse(s))
+
+
+def parse_date_like(dates: list[str]) -> datetime:
+    date = " ".join(dates) if len(dates) > 0 else str(today())
+
+    return (date if date is click.DateTime else parse_date(date)).replace(
+        hour=0, minute=0, second=0, microsecond=0
+    )
 
 
 @functools.lru_cache()
