@@ -9,8 +9,8 @@ import pytimeparse2
 import thallo.auth
 import thallo.utils as utils
 
-from thallo.format import pretty_print_events
-from thallo.calendar import Calendar
+from thallo.format import pretty_print_events, pretty_print_info
+from thallo.calendar import Calendar, Event
 
 
 def get_calendar(calendar=[]) -> Calendar:
@@ -31,6 +31,17 @@ def _parse_date(s: str) -> datetime:
 
 def _parse_delta(s: str) -> timedelta:
     return timedelta(seconds=pytimeparse2.parse(s))
+
+
+def get_calendar_from_dates(dates: list[str], days=1) -> None | list[Event]:
+    date = " ".join(dates) if len(dates) > 0 else str(_TODAY())
+
+    start = (date if date is click.DateTime else _parse_date(date)).replace(
+        hour=0, minute=0, second=0, microsecond=0
+    )
+
+    calendar = get_calendar()
+    return calendar.fetch_dict(start, start + timedelta(days=days))
 
 
 @click.group()
@@ -83,14 +94,7 @@ def fetch(**kwargs):
 )
 def day(dates, **kwargs):
     """Show the events on a specific day. Defaults to today."""
-    date = " ".join(dates) if len(dates) > 0 else str(_TODAY())
-
-    start = (date if date is click.DateTime else _parse_date(date)).replace(
-        hour=0, minute=0, second=0, microsecond=0
-    )
-
-    calendar = get_calendar()
-    events = calendar.fetch_dict(start, start + timedelta(days=1))
+    events = get_calendar_from_dates(dates)
 
     if kwargs["json"]:
         return print(json.dumps(events))
