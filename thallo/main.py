@@ -105,7 +105,7 @@ def fetch(**kwargs):
     help="Output the events as a JSON string.",
 )
 def info(dates, **kwargs):
-    """Get detailed information about a specific event."""
+    """Get detailed information about a day or specific event."""
     events = get_calendar_from_dates(dates)
 
     if not kwargs["index"] and not kwargs["name"]:
