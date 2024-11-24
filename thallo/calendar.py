@@ -135,8 +135,8 @@ class Calendar:
             "body": cleanup_string(md(event.body)),
             "attendees": attendees,
             "locations": locations,
-            "start_time": event.start.isoformat(),
-            "end_time": event.end.isoformat(),
+            "start_time": event.start,
+            "end_time": event.end,
         }
         return e
 

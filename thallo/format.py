@@ -51,11 +51,11 @@ def wrap(text: str, width=TERMINAL_WIDTH, indent=0) -> list[str]:
 def pretty_print_info(
     event: Event, attendees=False, location=False, body=False, index=None
 ):
-    start = datetime.fromisoformat(event["start_time"])
+    start = event["start_time"]
     start_date = start.strftime("%a %d %b %Y")
     start_time = start.strftime("%H:%M")
 
-    end = datetime.fromisoformat(event["end_time"])
+    end = event["end_time"]
     end_date = end.strftime("%a %d %b %Y")
     end_time = end.strftime("%H:%M")
 
