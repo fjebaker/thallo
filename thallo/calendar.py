@@ -130,13 +130,13 @@ class Calendar:
     @staticmethod
     def extract_fields(event: Event) -> dict:
         attendees = [{"name": i.name, "address": i.address} for i in event.attendees]
-        locations = event.locations
+        location = event.location
 
         e = {
             "name": event.attachment_name,
             "body": cleanup_string(md(event.body)),
             "attendees": attendees,
-            "locations": locations,
+            "location": location,
             "start_time": event.start,
             "end_time": event.end,
         }
@@ -148,6 +148,7 @@ class Calendar:
         end: datetime,
         title="New Meeting",
         private=False,
+        location=None,
         body=None,
     ) -> Event:
         start = start.astimezone(timezone.utc).replace(tzinfo=ZoneInfo("UTC"))
@@ -164,6 +165,9 @@ class Calendar:
         if body:
             ev.body = body
 
+        if location:
+            ev.location["uniqueId"] = location
+
         return ev
 
     def serialize_event(self, event: Event) -> str:
@@ -173,20 +177,17 @@ class Calendar:
         end_time = d["end_time"].strftime(HUMAN_TIME_FORMAT)
         title = d["name"]
         body = d["body"]
+        location = d["location"]["uniqueId"]
 
         buf = ""
         buf += f"Start: {start_time}\n"
         buf += f"End: {end_time}\n"
         buf += f"Title: {title}\n"
+        buf += f"Location: {location}\n"
         buf += f"Body: {body}"
         return buf
 
     def deserialize_event(self, content: str) -> None | Event:
-        start_time = None
-        end_time = None
-        title = None
-        body = None
-
         lines = (i for i in content.split("\n"))
 
         def get_next(s: str) -> str:
@@ -199,6 +200,9 @@ class Calendar:
         start_time = utils.parse_date(get_next("Start:").strip())
         end_time = utils.parse_date(get_next("End:").strip())
         title = get_next("Title:")
+        location = get_next("Location:")
         body = "\n".join(lines)
 
-        return self.add_event(start_time, end_time, title=title, body=body)
+        return self.add_event(
+            start_time, end_time, title=title, body=body, location=location
+        )

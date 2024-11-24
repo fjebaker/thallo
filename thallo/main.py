@@ -164,6 +164,11 @@ def info(dates, **kwargs):
     type=str,
     help="Body of the event",
 )
+@click.option(
+    "--location",
+    type=str,
+    help="The location of the event (specify by `uniqueId`).",
+)
 def add(dates, **kwargs):
     """Add a new event to a calendar."""
     date = " ".join(dates)
@@ -183,6 +188,7 @@ def add(dates, **kwargs):
         title=kwargs["title"],
         private=kwargs["private"],
         body=kwargs["body"],
+        location=kwargs["location"],
     )
 
     if kwargs["interactive"]:
@@ -200,10 +206,13 @@ def add(dates, **kwargs):
     if not ev:
         return
 
-    print("Event:", ev)
-    if ev.body:
-        print("Body:\n")
-        print(ev.body)
+    print("New event:")
+    print()
+    pretty_print_info(
+        Calendar.extract_fields(ev), body=True, attendees=True, location=True
+    )
+    print()
+
     inp = input("Accept? [Y/n] ").strip().lower()
     if inp == "" or inp == "y":
         ev.save()
