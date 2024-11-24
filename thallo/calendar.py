@@ -9,7 +9,7 @@ import thallo.auth
 import thallo.utils as utils
 
 from O365 import Account
-from O365.calendar import Calendar, Event
+from O365.calendar import Calendar, Event, Attendee
 from O365.utils.token import BaseTokenBackend, Token
 
 from markdownify import markdownify as md
@@ -149,6 +149,7 @@ class Calendar:
         title="New Meeting",
         private=False,
         location=None,
+        attendees=None,
         body=None,
     ) -> Event:
         start = start.astimezone(timezone.utc).replace(tzinfo=ZoneInfo("UTC"))
@@ -168,6 +169,10 @@ class Calendar:
         if location:
             ev.location["uniqueId"] = location
 
+        if attendees:
+            for address in attendees:
+                ev.attendees.add(Attendee(address.strip()))
+
         return ev
 
     def serialize_event(self, event: Event) -> str:
@@ -177,13 +182,15 @@ class Calendar:
         end_time = d["end_time"].strftime(HUMAN_TIME_FORMAT)
         title = d["name"]
         body = d["body"]
-        location = d["location"]["uniqueId"]
+        location = d["location"].get("uniqueId", "")
+        attendees = ",".join((i["address"] for i in d["attendees"]))
 
         buf = ""
         buf += f"Start: {start_time}\n"
         buf += f"End: {end_time}\n"
         buf += f"Title: {title}\n"
         buf += f"Location: {location}\n"
+        buf += f"Attendees: {attendees}\n"
         buf += f"Body: {body}"
         return buf
 
@@ -201,8 +208,14 @@ class Calendar:
         end_time = utils.parse_date(get_next("End:").strip())
         title = get_next("Title:")
         location = get_next("Location:")
+        attendees = get_next("Attendees:")
         body = "\n".join(lines)
 
         return self.add_event(
-            start_time, end_time, title=title, body=body, location=location
+            start_time,
+            end_time,
+            title=title,
+            body=body,
+            location=location,
+            attendees=attendees.split(","),
         )

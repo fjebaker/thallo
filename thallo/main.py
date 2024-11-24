@@ -169,6 +169,11 @@ def info(dates, **kwargs):
     type=str,
     help="The location of the event (specify by `uniqueId`).",
 )
+@click.option(
+    "--invite",
+    type=str,
+    help="A comma seperated list of email addresses to invite to the event.",
+)
 def add(dates, **kwargs):
     """Add a new event to a calendar."""
     date = " ".join(dates)
@@ -181,6 +186,10 @@ def add(dates, **kwargs):
     duration = utils.parse_delta(kwargs["duration"])
     end = start + duration
 
+    invites = []
+    if kwargs["invite"]:
+        invites += kwargs["invite"].split(",")
+
     calendar = get_calendar()
     ev = calendar.add_event(
         start,
@@ -189,6 +198,7 @@ def add(dates, **kwargs):
         private=kwargs["private"],
         body=kwargs["body"],
         location=kwargs["location"],
+        attendees=invites,
     )
 
     if kwargs["interactive"]:
