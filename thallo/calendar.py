@@ -20,7 +20,7 @@ FIELDS_TO_SAVE = [
     "access_token",
 ]
 
-HUMAN_TIME_FORMAT = "%d/%m/%Y %H:%M UTC%z"
+HUMAN_TIME_FORMAT = "%d/%m/%Y %H:%M UTC"
 
 
 def cleanup_string(s: str) -> str:
@@ -196,8 +196,8 @@ class Calendar:
                 return None
             return line.removeprefix(start).strip()
 
-        start_time = utils.parse_date_like(get_next("Start:").split(" "))
-        end_time = utils.parse_date_like(get_next("End:").split(" "))
+        start_time = utils.parse_date(get_next("Start:").strip())
+        end_time = utils.parse_date(get_next("End:").strip())
         title = get_next("Title:")
         body = "\n".join(lines)
 

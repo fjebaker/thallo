@@ -81,6 +81,11 @@ def pretty_print_info(
     buf += f" - with {n} attendees"
     lines.append(buf)
 
+    if location and event["locations"]:
+        buf = Style.DIM + "Location: " + Style.RESET_ALL
+        buf += event["locations"][0]["displayName"]
+        lines.append(buf)
+
     # body
     if body:
         lines.append(Style.DIM + "Body:" + Style.RESET_ALL)

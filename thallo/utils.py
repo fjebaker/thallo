@@ -43,9 +43,8 @@ def parse_delta(s: str) -> timedelta:
     return timedelta(seconds=pytimeparse2.parse(s))
 
 
-def parse_date_like(dates: list[str]) -> datetime:
+def parse_start_of_day(dates: list[str]) -> datetime:
     date = " ".join(dates) if len(dates) > 0 else str(today())
-
     return (date if date is click.DateTime else parse_date(date)).replace(
         hour=0, minute=0, second=0, microsecond=0
     )

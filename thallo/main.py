@@ -25,13 +25,13 @@ def get_calendar_dates(dates: list[str], delta_days=1) -> Calendar:
     calendar = get_calendar()
     return calendar.fetch_dict(date, date + timedelta(days=delta_days))
 
+
 def json_dump_events(events: list[Event]) -> str:
     _events = copy.deepcopy(events)
     for ev in _events:
         ev["start_time"] = ev["start_time"].isoformat()
         ev["end_time"] = ev["end_time"].isoformat()
     return json.dumps(_events)
-
 
 
 @click.group()
@@ -136,8 +136,9 @@ def info(dates, **kwargs):
 @click.option(
     "-t",
     "--title",
+    default="No Title",
     type=str,
-    required=True,
+    show_default=True,
     help="The title of the event",
 )
 @click.option(
@@ -156,7 +157,7 @@ def info(dates, **kwargs):
     "-i",
     "--interactive",
     is_flag=True,
-    help="Allow the event to be edited in $EDITOR.",
+    help="Edit the event in $EDITOR.",
 )
 @click.option(
     "--body",
@@ -168,6 +169,10 @@ def add(dates, **kwargs):
     date = " ".join(dates)
 
     start = date if date is click.DateTime else utils.parse_date(date)
+    if not start:
+        print("Must supply a start time for the event!")
+        return
+
     duration = utils.parse_delta(kwargs["duration"])
     end = start + duration
 
@@ -175,7 +180,7 @@ def add(dates, **kwargs):
     ev = calendar.add_event(
         start,
         end,
-        title=kwargs["title"] or "No Title",
+        title=kwargs["title"],
         private=kwargs["private"],
         body=kwargs["body"],
     )
@@ -196,6 +201,9 @@ def add(dates, **kwargs):
         return
 
     print("Event:", ev)
+    if ev.body:
+        print("Body:\n")
+        print(ev.body)
     inp = input("Accept? [Y/n] ").strip().lower()
     if inp == "" or inp == "y":
         ev.save()
