@@ -89,7 +89,7 @@ def info(dates, **kwargs):
     """Get detailed information about a day or specific event."""
     events = get_calendar_dates(dates)
 
-    if not kwargs["index"] and not kwargs["name"]:
+    if kwargs["index"] is None and kwargs["name"] is None:
         if len(events) == 0:
             print("\n - No events - \n")
             return
@@ -104,14 +104,15 @@ def info(dates, **kwargs):
         return
 
     ev = None
-    if kwargs["index"]:
+    if kwargs["index"] is not None:
         ev = events[int(kwargs["index"])]
-    elif kwargs["name"]:
+    elif kwargs["name"] is not None:
         name = kwargs["name"].lower()
         evs = [i for i in events if i["name"].lower() == name]
         ev = evs[0]
     else:
         print("Unknown event selection!")
+        return
 
     print()
     pretty_print_info(ev, body=True, attendees=True, location=True)
