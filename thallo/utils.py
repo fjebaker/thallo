@@ -29,6 +29,7 @@ def tmp_editor(contents="") -> str:
     """Pop an $EDITOR with some optional contents."""
     with tempfile.NamedTemporaryFile(mode="w+") as tmp:
         tmp.write(contents)
+        tmp.seek(0)
         subprocess.run([os.environ.get("EDITOR", "vim"), tmp.name])
         tmp.seek(0)
         return tmp.read()

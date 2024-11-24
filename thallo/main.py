@@ -1,4 +1,5 @@
 import json
+import copy
 
 from datetime import datetime, timedelta
 
@@ -20,9 +21,17 @@ def get_calendar(calendar=[]) -> Calendar:
 
 
 def get_calendar_dates(dates: list[str], delta_days=1) -> Calendar:
-    date = utils.parse_date_like(dates)
+    date = utils.parse_start_of_day(dates)
     calendar = get_calendar()
     return calendar.fetch_dict(date, date + timedelta(days=delta_days))
+
+def json_dump_events(events: list[Event]) -> str:
+    _events = copy.deepcopy(events)
+    for ev in _events:
+        ev["start_time"] = ev["start_time"].isoformat()
+        ev["end_time"] = ev["end_time"].isoformat()
+    return json.dumps(_events)
+
 
 
 @click.group()
@@ -60,7 +69,7 @@ def fetch(**kwargs):
     events = calendar.fetch_dict(start, end)
 
     if kwargs["json"]:
-        print(json.dumps(events))
+        print(json_dump_events(events))
         return
 
     pretty_print_events(events)
@@ -95,7 +104,7 @@ def info(dates, **kwargs):
             return
 
         if kwargs["json"]:
-            return print(json.dumps(events))
+            return print(json_dump_events(events))
 
         return pretty_print_events(events)
 
@@ -113,6 +122,9 @@ def info(dates, **kwargs):
     else:
         print("Unknown event selection!")
         return
+
+    if kwargs["json"]:
+        return print(json_dump_events([ev]))
 
     print()
     pretty_print_info(ev, body=True, attendees=True, location=True)
@@ -140,18 +152,49 @@ def info(dates, **kwargs):
     is_flag=True,
     help="Set the event to a private event.",
 )
+@click.option(
+    "-i",
+    "--interactive",
+    is_flag=True,
+    help="Allow the event to be edited in $EDITOR.",
+)
+@click.option(
+    "--body",
+    type=str,
+    help="Body of the event",
+)
 def add(dates, **kwargs):
     """Add a new event to a calendar."""
     date = " ".join(dates)
 
-    start = date if date is click.DateTime else _parse_date(date)
-    duration = _parse_delta(kwargs["duration"])
+    start = date if date is click.DateTime else utils.parse_date(date)
+    duration = utils.parse_delta(kwargs["duration"])
     end = start + duration
 
     calendar = get_calendar()
     ev = calendar.add_event(
-        start, end, title=kwargs["title"], private=kwargs["private"]
+        start,
+        end,
+        title=kwargs["title"] or "No Title",
+        private=kwargs["private"],
+        body=kwargs["body"],
     )
+
+    if kwargs["interactive"]:
+        contents = calendar.serialize_event(ev)
+
+        while True:
+            updated_contents = utils.tmp_editor(contents)
+            ev = calendar.deserialize_event(updated_contents)
+            if not ev:
+                inp = input("Input invalid. Try again? [Y/n] ").strip().lower()
+                if inp == "" or inp == "y":
+                    continue
+            break
+
+    if not ev:
+        return
+
     print("Event:", ev)
     inp = input("Accept? [Y/n] ").strip().lower()
     if inp == "" or inp == "y":

@@ -20,6 +20,8 @@ FIELDS_TO_SAVE = [
     "access_token",
 ]
 
+HUMAN_TIME_FORMAT = "%d/%m/%Y %H:%M UTC%z"
+
 
 def cleanup_string(s: str) -> str:
     lines = [l.strip() for l in s.strip().split("\n")]
@@ -163,3 +165,40 @@ class Calendar:
             ev.body = body
 
         return ev
+
+    def serialize_event(self, event: Event) -> str:
+        d = Calendar.extract_fields(event)
+
+        start_time = d["start_time"].strftime(HUMAN_TIME_FORMAT)
+        end_time = d["end_time"].strftime(HUMAN_TIME_FORMAT)
+        title = d["name"]
+        body = d["body"]
+
+        buf = ""
+        buf += f"Start: {start_time}\n"
+        buf += f"End: {end_time}\n"
+        buf += f"Title: {title}\n"
+        buf += f"Body: {body}"
+        return buf
+
+    def deserialize_event(self, content: str) -> None | Event:
+        start_time = None
+        end_time = None
+        title = None
+        body = None
+
+        lines = (i for i in content.split("\n"))
+
+        def get_next(s: str) -> str:
+            start = s.strip()
+            line = next(lines)
+            if not line.startswith(start):
+                return None
+            return line.removeprefix(start).strip()
+
+        start_time = utils.parse_date_like(get_next("Start:").split(" "))
+        end_time = utils.parse_date_like(get_next("End:").split(" "))
+        title = get_next("Title:")
+        body = "\n".join(lines)
+
+        return self.add_event(start_time, end_time, title=title, body=body)
