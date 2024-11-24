@@ -27,7 +27,7 @@ TERMINAL_WIDTH = shutil.get_terminal_size().columns
 def encapsulate(lines: list[str]) -> str:
     buf = ""
     for i, l in enumerate(lines):
-        buf += Style.DIM
+        buf += " " + Style.DIM
         if i == 0:
             buf += BOX_TOP_LEFT
         elif i == len(lines) - 1:
@@ -40,16 +40,12 @@ def encapsulate(lines: list[str]) -> str:
     return buf[:-1]
 
 
-def wrap(text: str, indent: int = 2) -> str:
-    return textwrap.indent(
-        textwrap.fill(
-            text,
-            TERMINAL_WIDTH - indent,
-            replace_whitespace=False,
-            drop_whitespace=False,
-        ),
-        " " * indent,
-    )
+def wrap(text: str, width=TERMINAL_WIDTH, indent=0) -> list[str]:
+    lines = []
+    for line in text.split("\n"):
+        lines += textwrap.wrap(line, width)
+    _indent = " " * indent
+    return [_indent + line for line in lines]
 
 
 def pretty_print_info(
@@ -86,6 +82,16 @@ def pretty_print_info(
     lines.append(buf)
 
     # body
+    if body:
+        lines.append(Style.DIM + "Body:" + Style.RESET_ALL)
+        lines += wrap(event["body"] or " - No body - ", width=80, indent=1)
+
+    if attendees:
+        lines.append(Style.DIM + "Attendees:" + Style.RESET_ALL)
+        for att in event["attendees"]:
+            name = att["name"]
+            address = att["address"]
+            lines.append(f" - {name} {Style.DIM}<{address}>{Style.RESET_ALL}")
 
     # newline
     print(encapsulate(lines))

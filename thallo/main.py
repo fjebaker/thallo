@@ -88,18 +88,55 @@ def fetch(**kwargs):
 @click.command()
 @click.argument("dates", nargs=-1)
 @click.option(
+    "-i",
+    "--index",
+    type=int,
+    help="The index of the event on the selected day.",
+)
+@click.option(
+    "-n",
+    "--name",
+    type=str,
+    help="The name of the event on the selected day.",
+)
+@click.option(
     "--json",
     is_flag=True,
     help="Output the events as a JSON string.",
 )
-def day(dates, **kwargs):
-    """Show the events on a specific day. Defaults to today."""
+def info(dates, **kwargs):
+    """Get detailed information about a specific event."""
     events = get_calendar_from_dates(dates)
 
-    if kwargs["json"]:
-        return print(json.dumps(events))
+    if not kwargs["index"] and not kwargs["name"]:
+        events = get_calendar_from_dates(dates)
 
-    pretty_print_events(events)
+        if len(events) == 0:
+            print("\n - No events - \n")
+            return
+
+        if kwargs["json"]:
+            return print(json.dumps(events))
+
+        return pretty_print_events(events)
+
+    if kwargs["index"] and kwargs["name"]:
+        print("Can only specify one event selector (`--index` or `--name`)")
+        return
+
+    ev = None
+    if kwargs["index"]:
+        ev = events[int(kwargs["index"])]
+    elif kwargs["name"]:
+        name = kwargs["name"].lower()
+        evs = [i for i in events if i["name"].lower() == name]
+        ev = evs[0]
+    else:
+        print("Unknown event selection!")
+
+    print()
+    pretty_print_info(ev, body=True, attendees=True, location=True)
+    print()
 
 
 @click.command()
@@ -160,6 +197,6 @@ def main():
 
 
 entry.add_command(fetch)
-entry.add_command(day)
 entry.add_command(add)
 entry.add_command(authorize)
+entry.add_command(info)
