@@ -132,9 +132,17 @@ class Calendar:
         attendees = [{"name": i.name, "address": i.address} for i in event.attendees]
         location = event.location
 
+        if parse_body:
+            if event.body_type == "text":
+                body = event.body
+            else:
+                body = cleanup_string(md(event.body))
+        else:
+            body = event.body
+
         e = {
             "name": event.attachment_name,
-            "body": cleanup_string(md(event.body)) if parse_body else event.body,
+            "body": body,
             "attendees": attendees,
             "location": location,
             "start_time": event.start,
