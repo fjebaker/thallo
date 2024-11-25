@@ -165,6 +165,7 @@ class Calendar:
 
         if body:
             ev.body = body
+            ev.body_type = "text"
 
         if location:
             ev.location["uniqueId"] = location
