@@ -91,10 +91,12 @@ def pretty_print_info(
 
     # location details
     if location and event["location"]:
-        buf = Style.DIM + "Location: " + Style.RESET_ALL
         loc = event["location"]
-        buf += loc.get("displayName", loc["uniqueId"])
-        lines.append(buf)
+        loc_name = loc.get("displayName", loc.get("uniqueId", None))
+        if loc_name:
+            buf = Style.DIM + "Location: " + Style.RESET_ALL
+            buf += loc_name
+            lines.append(buf)
 
     # body
     if body:
