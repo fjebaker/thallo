@@ -40,16 +40,24 @@ def encapsulate(lines: list[str]) -> str:
     return buf[:-1]
 
 
-def wrap(text: str, width=TERMINAL_WIDTH, indent=0) -> list[str]:
+def text_wrap(text: str, width=TERMINAL_WIDTH, indent=0) -> list[str]:
     lines = []
     for line in text.split("\n"):
-        lines += textwrap.wrap(line, width)
+        if len(line.strip()) == 0:
+            lines += [""]
+        else:
+            lines += textwrap.wrap(line, width)
     _indent = " " * indent
     return [_indent + line for line in lines]
 
 
 def pretty_print_info(
-    event: Event, attendees=False, location=False, body=False, index=None
+    event: Event,
+    attendees=False,
+    location=False,
+    body=False,
+    index=None,
+    wrap=True,
 ):
     start = event["start_time"]
     start_date = start.strftime("%a %d %b %Y")
@@ -91,7 +99,11 @@ def pretty_print_info(
     # body
     if body:
         lines.append(Style.DIM + "Body:" + Style.RESET_ALL)
-        lines += wrap(event["body"] or " - No body - ", width=80, indent=1)
+        body = event["body"] or " - No body - "
+        if wrap:
+            lines += text_wrap(body, width=80, indent=1)
+        else:
+            lines += body.split("\n")
 
     if attendees and n > 0:
         lines.append(Style.DIM + "Attendees:" + Style.RESET_ALL)

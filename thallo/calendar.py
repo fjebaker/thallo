@@ -128,13 +128,13 @@ class Calendar:
         return [self.extract_fields(i) for i in self.fetch(start, end, **kwargs)]
 
     @staticmethod
-    def extract_fields(event: Event) -> dict:
+    def extract_fields(event: Event, parse_body=True) -> dict:
         attendees = [{"name": i.name, "address": i.address} for i in event.attendees]
         location = event.location
 
         e = {
             "name": event.attachment_name,
-            "body": cleanup_string(md(event.body)),
+            "body": cleanup_string(md(event.body)) if parse_body else event.body,
             "attendees": attendees,
             "location": location,
             "start_time": event.start,
@@ -209,6 +209,7 @@ class Calendar:
         title = get_next("Title:")
         location = get_next("Location:")
         attendees = get_next("Attendees:")
+        _ = get_next("Body:")
         body = "\n".join(lines)
 
         return self.add_event(

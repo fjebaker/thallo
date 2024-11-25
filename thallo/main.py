@@ -219,7 +219,11 @@ def add(dates, **kwargs):
     print("New event:")
     print()
     pretty_print_info(
-        Calendar.extract_fields(ev), body=True, attendees=True, location=True
+        Calendar.extract_fields(ev, parse_body=False),
+        body=True,
+        attendees=True,
+        location=True,
+        wrap=False,
     )
     print()
 
