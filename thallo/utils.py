@@ -36,7 +36,11 @@ def tmp_editor(contents="") -> str:
 
 
 def parse_date(s: str) -> datetime:
-    return dateparser.parse(s, settings={"PREFER_DATES_FROM": "future"})
+    return dateparser.parse(
+        s,
+        settings={"PREFER_DATES_FROM": "future", "DATE_ORDER": "DMY"},
+        locales=["en-GB"],
+    )
 
 
 def parse_delta(s: str) -> timedelta:
@@ -44,7 +48,10 @@ def parse_delta(s: str) -> timedelta:
 
 
 def parse_start_of_day(dates: list[str]) -> datetime:
-    date = " ".join(dates) if len(dates) > 0 else str(today())
+    if len(dates) == 0:
+        return today()
+
+    date = " ".join(dates)
     return (date if date is click.DateTime else parse_date(date)).replace(
         hour=0, minute=0, second=0, microsecond=0
     )
