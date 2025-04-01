@@ -9,6 +9,10 @@ from colorama import init, Fore, Style
 # initialise colorama
 init()
 
+# get the current timezone for the lifetime of the program
+current_tz = datetime.now().astimezone().tzinfo
+
+
 BOX_TOP_LEFT = "╭"
 BOX_CONT = "│"
 BOX_BOT_LEFT = "╰"
@@ -59,11 +63,11 @@ def pretty_print_info(
     index=None,
     wrap=True,
 ):
-    start = event["start_time"]
+    start = event["start_time"].astimezone(current_tz)
     start_date = start.strftime("%a %d %b %Y")
     start_time = start.strftime("%H:%M")
 
-    end = event["end_time"]
+    end = event["end_time"].astimezone(current_tz)
     end_date = end.strftime("%a %d %b %Y")
     end_time = end.strftime("%H:%M")
 
