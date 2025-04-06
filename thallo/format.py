@@ -55,6 +55,10 @@ def text_wrap(text: str, width=TERMINAL_WIDTH, indent=0) -> list[str]:
     return [_indent + line for line in lines]
 
 
+def str_date_local(date) -> str:
+    return date.astimezone(current_tz).strftime("%a %b %d %Y")
+
+
 def pretty_print_info(
     event: Event,
     attendees=False,

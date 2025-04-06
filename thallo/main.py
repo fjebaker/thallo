@@ -8,7 +8,7 @@ import click
 import thallo.auth
 import thallo.utils as utils
 
-from thallo.format import pretty_print_events, pretty_print_info
+from thallo.format import pretty_print_events, pretty_print_info, str_date_local
 from thallo.calendar import Calendar, Event
 
 
@@ -23,7 +23,7 @@ def get_calendar(calendar=[]) -> Calendar:
 def get_calendar_dates(dates: list[str], delta_days=1) -> Calendar:
     date = utils.parse_start_of_day(dates)
     calendar = get_calendar()
-    return calendar.fetch_dict(date, date + timedelta(days=delta_days))
+    return date, calendar.fetch_dict(date, date + timedelta(days=delta_days))
 
 
 def json_dump_events(events: list[Event]) -> str:
@@ -96,7 +96,9 @@ def fetch(**kwargs):
 )
 def info(dates, **kwargs):
     """Get detailed information about a day or specific event."""
-    events = get_calendar_dates(dates)
+    parsed_date, events = get_calendar_dates(dates)
+
+    print(f"Events for {str_date_local(parsed_date)}")
 
     if kwargs["index"] is None and kwargs["name"] is None:
         if len(events) == 0:
