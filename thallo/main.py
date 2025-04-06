@@ -43,15 +43,13 @@ def entry():
 @click.command()
 @click.option(
     "--from",
-    default=utils.today(),
-    type=click.DateTime(),
+    default="today",
     show_default=True,
     help="The date to select from",
 )
 @click.option(
     "--to",
-    default=utils.today() + timedelta(days=7 * 2),
-    type=click.DateTime(),
+    default="tomorrow",
     show_default=True,
     help="The date to select to, not inclusive (defaults to a fortnight ahead).",
 )
@@ -62,11 +60,13 @@ def entry():
 )
 def fetch(**kwargs):
     """Fetch events from the calendar and print in various ways."""
-    start = kwargs["from"]
-    end = kwargs["to"]
+    start = utils.parse_start_of_day(kwargs["from"].split())
+    end = utils.parse_start_of_day(kwargs["to"].split())
 
     calendar = get_calendar()
     events = calendar.fetch_dict(start, end)
+
+    print(f"Events from {str_date_local(start)} to {str_date_local(end)}")
 
     if kwargs["json"]:
         print(json_dump_events(events))
